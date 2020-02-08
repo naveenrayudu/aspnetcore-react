@@ -1,0 +1,35 @@
+html {
+  font-size: 62.5%;
+}
+
+
+body {
+  background-color: rgb(234, 234, 234) !important;
+  font-size: 1.6rem;
+}
+
+#root {
+  font-size: 1.6rem;
+}
+
+.ui.inverted.top.fixed.menu {
+  font-size: 1.3rem;
+  background-image: linear-gradient(
+    135deg,
+    rgb(24, 42, 115) 0%,
+    rgb(33, 138, 174) 69%,
+    rgb(32, 167, 172) 89%
+  ) !important;
+}
+
+.ui.clearing.segment.activity-list--dashboard {
+  font-size: 1.3rem;
+}
+
+.ui.button{
+  font-size: 1.3rem;
+}
+
+.activity-details .buttons .ui.button, .ui.form {
+  font-size: 1.3rem;
+}
