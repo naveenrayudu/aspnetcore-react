@@ -7,9 +7,10 @@ interface IProps {
     selectedActivity: IActivity | null;
     saveNewActivity: (activity: IActivity) => void;
     updateExistingActivity: (activity: IActivity) => void;
+    submitting: boolean
 }
 
-export const ActivityForm: React.FC<IProps> = ({ setEditMode, selectedActivity, saveNewActivity, updateExistingActivity }) => {
+export const ActivityForm: React.FC<IProps> = ({ setEditMode, selectedActivity, saveNewActivity, updateExistingActivity, submitting }) => {
 
     const initializeActivity = (activity: IActivity | null): IActivity => {
         if (activity !== null) {
@@ -54,7 +55,7 @@ export const ActivityForm: React.FC<IProps> = ({ setEditMode, selectedActivity, 
                 <Form.Input onChange={onInputChange} name='date' type='datetime-local' placeholder='Date' value={activity.date} />
                 <Form.Input onChange={onInputChange} name='city' placeholder='City' value={activity.city} />
                 <Form.Input onChange={onInputChange} name='venue' placeholder='Venue' value={activity.venue} />
-                <Button floated='right' content='Submit' type='submit' positive onClick={saveActivity} />
+                <Button floated='right' content='Submit' type='submit' loading={submitting} positive onClick={saveActivity} />
                 <Button floated='right' content='Cancel' type='button' onClick={() => setEditMode(false)} />
             </Form>
         </Segment>

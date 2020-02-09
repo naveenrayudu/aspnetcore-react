@@ -6,9 +6,11 @@ interface IProps {
     activities: IActivity[];
     setSelectedActivtiy: (id: string) => void;
     deleteActivtiy: (id: string) => void;
+    submitting: boolean;
+    target: string
 }
 
-export const ActivityList: React.FC<IProps> = ({ activities, setSelectedActivtiy, deleteActivtiy }) => {
+export const ActivityList: React.FC<IProps> = ({ activities, setSelectedActivtiy, deleteActivtiy, submitting, target }) => {
 
     const generateContent = (activity: IActivity) => {
         return (
@@ -25,7 +27,7 @@ export const ActivityList: React.FC<IProps> = ({ activities, setSelectedActivtiy
                             setSelectedActivtiy(activity.id)
                         }}></Button>
 
-                        <Button content='Delete' color='red' floated='right' onClick={() => {
+                        <Button content='Delete' loading={target === activity.id && submitting} color='red' floated='right' onClick={() => {
                             deleteActivtiy(activity.id)
                         }}></Button>
                         <Label basic content='Category'></Label>
