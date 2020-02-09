@@ -1,16 +1,11 @@
-import React, { useState, useEffect, FormEvent } from 'react'
+import React, { useState, useEffect, FormEvent, useContext } from 'react'
 import { Segment, Form, Button } from 'semantic-ui-react'
 import { IActivity } from '../../../app/models/activity'
+import ActivityStore from '../../../app/stores/activityStore'
+import { observer } from 'mobx-react-lite'
 
-interface IProps {
-    setEditMode: (editMode: boolean) => void;
-    selectedActivity: IActivity | null;
-    saveNewActivity: (activity: IActivity) => void;
-    updateExistingActivity: (activity: IActivity) => void;
-    submitting: boolean
-}
-
-export const ActivityForm: React.FC<IProps> = ({ setEditMode, selectedActivity, saveNewActivity, updateExistingActivity, submitting }) => {
+const ActivityForm: React.FC = () => {
+    const {setEditMode, selectedActivity, createActivity, isSubmitting, updateActivity} = useContext(ActivityStore);
 
     const initializeActivity = (activity: IActivity | null): IActivity => {
         if (activity !== null) {
@@ -28,22 +23,22 @@ export const ActivityForm: React.FC<IProps> = ({ setEditMode, selectedActivity, 
         }
     }
 
-    const [activity, updateActivity] = useState<IActivity>(initializeActivity(selectedActivity));
+    const [activity, updateActivityState] = useState<IActivity>(initializeActivity(selectedActivity));
 
     useEffect(() => {
-        updateActivity(initializeActivity(selectedActivity));
+        updateActivityState(initializeActivity(selectedActivity));
     }, [selectedActivity]);
 
     const onInputChange = (event: FormEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const { name, value } = event.currentTarget;
-        updateActivity({
+        updateActivityState({
             ...activity,
             [name]: value
         })
     }
 
     const saveActivity = () => {    
-        activity.id === '' ? saveNewActivity(activity) : updateExistingActivity(activity);
+        activity.id === '' ? createActivity(activity) : updateActivity(activity);
     }
 
     return (
@@ -55,9 +50,11 @@ export const ActivityForm: React.FC<IProps> = ({ setEditMode, selectedActivity, 
                 <Form.Input onChange={onInputChange} name='date' type='datetime-local' placeholder='Date' value={activity.date} />
                 <Form.Input onChange={onInputChange} name='city' placeholder='City' value={activity.city} />
                 <Form.Input onChange={onInputChange} name='venue' placeholder='Venue' value={activity.venue} />
-                <Button floated='right' content='Submit' type='submit' loading={submitting} positive onClick={saveActivity} />
+                <Button floated='right' content='Submit' type='submit' loading={isSubmitting} positive onClick={saveActivity} />
                 <Button floated='right' content='Cancel' type='button' onClick={() => setEditMode(false)} />
             </Form>
         </Segment>
     )
 }
+
+export default observer(ActivityForm);

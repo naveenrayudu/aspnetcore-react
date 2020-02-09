@@ -33,7 +33,10 @@ namespace API
             {
                 options.AddPolicy("AllowLocalHost", bulder =>
                 {
-                    bulder.WithOrigins("http://localhost:3000");
+                    bulder.WithOrigins("http://localhost:3000")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowAnyOrigin();
                 });
             });
 

@@ -1,17 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Item, Button, Label, Segment } from 'semantic-ui-react'
 import { IActivity } from '../../../app/models/activity';
+import { observer } from 'mobx-react-lite';
+import ActivityStore from "../../../app/stores/activityStore";
 
-interface IProps {
-    activities: IActivity[];
-    setSelectedActivtiy: (id: string) => void;
-    deleteActivtiy: (id: string) => void;
-    submitting: boolean;
-    target: string
-}
-
-export const ActivityList: React.FC<IProps> = ({ activities, setSelectedActivtiy, deleteActivtiy, submitting, target }) => {
-
+const ActivityList: React.FC = () => {
+    const {activitiesByDate, selectActivity, deleteActivity, deletingActivityId, isDeleting } = useContext(ActivityStore);
     const generateContent = (activity: IActivity) => {
         return (
             <Item key={activity.id}>
@@ -24,11 +18,11 @@ export const ActivityList: React.FC<IProps> = ({ activities, setSelectedActivtiy
                     </Item.Description>
                     <Item.Extra>
                         <Button content='View' color='blue' floated='right' onClick={() => {
-                            setSelectedActivtiy(activity.id)
+                            selectActivity(activity.id)
                         }}></Button>
 
-                        <Button content='Delete' loading={target === activity.id && submitting} color='red' floated='right' onClick={() => {
-                            deleteActivtiy(activity.id)
+                        <Button content='Delete' loading={deletingActivityId === activity.id && isDeleting} color='red' floated='right' onClick={() => {
+                            deleteActivity(activity.id)
                         }}></Button>
                         <Label basic content='Category'></Label>
                     </Item.Extra>
@@ -41,9 +35,11 @@ export const ActivityList: React.FC<IProps> = ({ activities, setSelectedActivtiy
         <Segment clearing className="activity-list--dashboard">
             <Item.Group divided>
                 {
-                    activities.map(generateContent)
+                    activitiesByDate.map(generateContent)
                 }
             </Item.Group>
         </Segment>
     )
 }
+
+export default observer(ActivityList);
