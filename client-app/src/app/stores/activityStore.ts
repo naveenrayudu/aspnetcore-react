@@ -2,7 +2,7 @@ import { observable, action, computed, configure, runInAction } from "mobx";
 import { createContext } from "react";
 import { IActivity } from "../models/activity";
 import agent from "../api/agent";
-import { v4 as uuid } from "uuid";
+import {v4 as uuid} from "uuid";
 
 configure({
   enforceActions: "always"
@@ -11,8 +11,7 @@ configure({
 class ActivityStore {
   @observable activityRegistry = new Map();
   @observable loadingInitial: boolean = false;
-  @observable selectedActivity: IActivity | null = null;
-  @observable editMode: boolean = false;
+  @observable activity: IActivity | null = null;
   @observable isSubmitting: boolean = false;
   @observable isDeleting: boolean = false;
   @observable deletingActivityId: string = "";
@@ -33,33 +32,55 @@ class ActivityStore {
     const errorCallback = () => {
       runInAction(() => {
         this.loadingInitial = false;
-      })
+      });
     };
 
-    tryCatchBlock(successCallback, errorCallback);
+    await tryCatchBlock(successCallback, errorCallback);
+  };
+
+  @action loadActivityDetails = async (id: string) => {
+
+    if(this.activityRegistry.has(id))
+      return this.activity = this.activityRegistry.get(id);
+
+    this.loadingInitial = true;
+    const activity = await agent.Activities.details(id);
+
+    const successCallback = async () => {
+      runInAction(() => {
+        this.activity = activity;
+        this.loadingInitial = false;
+      });
+    }
+
+    const errorCallback = async () => {
+      runInAction(() => {
+        this.loadingInitial = false;
+      })
+    }
+
+    await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action createActivity = async (activity: IActivity) => {
-    const updatedActivity = { ...activity };
-    updatedActivity.id = uuid();
+    activity.id = uuid()
     this.isSubmitting = true;
     const successCallback = async () => {
-      await agent.Activities.create(updatedActivity);
+      await agent.Activities.create(activity);
       runInAction(() => {
-        this.activityRegistry.set(updatedActivity.id, updatedActivity);
+        this.activityRegistry.set(activity.id, activity);
         this.isSubmitting = false;
-        this.editMode = false;
-        this.selectedActivity = updatedActivity;
-      })
+        this.activity = activity;
+      });
     };
 
     const errorCallback = () => {
       runInAction(() => {
         this.isSubmitting = false;
-      })
+      });
     };
 
-    tryCatchBlock(successCallback, errorCallback);
+    await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action updateActivity = async (activity: IActivity) => {
@@ -69,18 +90,17 @@ class ActivityStore {
       runInAction(() => {
         this.activityRegistry.set(activity.id, activity);
         this.isSubmitting = false;
-        this.editMode = false;
-        this.selectedActivity = activity;
-      })
+        this.activity = activity;
+      });
     };
 
     const errorCallback = () => {
       runInAction(() => {
         this.isSubmitting = false;
-      })
+      });
     };
 
-    tryCatchBlock(successCallback, errorCallback);
+    await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action deleteActivity = async (id: string) => {
@@ -92,30 +112,30 @@ class ActivityStore {
         this.activityRegistry.delete(id);
         this.isDeleting = false;
         this.deletingActivityId = "";
-      })
+      });
     };
 
     const errorCallback = () => {
       runInAction(() => {
         this.isDeleting = false;
         this.deletingActivityId = "";
-      })
+      });
     };
 
-    tryCatchBlock(successCallback, errorCallback);
+   await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action selectActivity = (id: string | null) => {
-    this.selectedActivity = this.activityRegistry.get(id) || null;
-    this.editMode = false;
+    this.activity = this.activityRegistry.get(id) || null;
   };
-
-  @action setEditMode = (editMode: boolean) => (this.editMode = editMode);
 
   @action showCreateActivity = () => {
     this.selectActivity(null);
-    this.setEditMode(true);
   };
+
+  @action clearActivity = () => {
+    this.activity = null;
+  }
 
   @computed get activitiesByDate() {
     return Array.from(this.activityRegistry.values()).sort(
@@ -129,7 +149,7 @@ const tryCatchBlock = async (successCallback: any, errorCallback: any) => {
     await successCallback();
   } catch (error) {
     console.log(error);
-    errorCallback();
+    await errorCallback();
   }
 };
 

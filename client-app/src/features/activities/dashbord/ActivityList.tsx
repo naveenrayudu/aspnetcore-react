@@ -3,9 +3,10 @@ import { Item, Button, Label, Segment } from 'semantic-ui-react'
 import { IActivity } from '../../../app/models/activity';
 import { observer } from 'mobx-react-lite';
 import ActivityStore from "../../../app/stores/activityStore";
+import { Link } from 'react-router-dom';
 
 const ActivityList: React.FC = () => {
-    const {activitiesByDate, selectActivity, deleteActivity, deletingActivityId, isDeleting } = useContext(ActivityStore);
+    const {activitiesByDate, deleteActivity, deletingActivityId, isDeleting } = useContext(ActivityStore);
     const generateContent = (activity: IActivity) => {
         return (
             <Item key={activity.id}>
@@ -17,9 +18,7 @@ const ActivityList: React.FC = () => {
                         <div>{activity.city}, {activity.venue}</div>
                     </Item.Description>
                     <Item.Extra>
-                        <Button content='View' color='blue' floated='right' onClick={() => {
-                            selectActivity(activity.id)
-                        }}></Button>
+                        <Button content='View' color='blue' floated='right' as={Link} to={`/activities/${activity.id}`}></Button>
 
                         <Button content='Delete' loading={deletingActivityId === activity.id && isDeleting} color='red' floated='right' onClick={() => {
                             deleteActivity(activity.id)

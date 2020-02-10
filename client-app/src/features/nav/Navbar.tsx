@@ -1,21 +1,20 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Menu, Container, Button } from "semantic-ui-react";
-import ActivityStore from "../../app/stores/activityStore";
 import { observer } from "mobx-react-lite";
+import { NavLink } from "react-router-dom";
 
 
 const Navbar: React.FC = () => {
-  const { showCreateActivity } = useContext(ActivityStore);
   return (
     <Menu fixed="top" inverted>
       <Container>
-        <Menu.Item header>
+        <Menu.Item header exact as={NavLink} to='/'>
           <img src="/assets/logo.png" alt="logo" style={{ marginRight: '1em' }} />
           Reactivities
         </Menu.Item>
-        <Menu.Item name="Activities" />
-        <Menu.Item>
-          <Button onClick={showCreateActivity} positive>Create Activity</Button>
+        <Menu.Item name="Activities" as={NavLink} to='/activities' />
+        <Menu.Item as={NavLink} to='/createActivity'>
+          <Button positive>Create Activity</Button>
         </Menu.Item>
       </Container>
     </Menu>
@@ -23,3 +22,4 @@ const Navbar: React.FC = () => {
 };
 
 export default observer(Navbar);
+// onClick={showCreateActivity}

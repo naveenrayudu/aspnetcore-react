@@ -3,9 +3,12 @@ import { Segment, Form, Button } from 'semantic-ui-react'
 import { IActivity } from '../../../app/models/activity'
 import ActivityStore from '../../../app/stores/activityStore'
 import { observer } from 'mobx-react-lite'
+import { useHistory, useParams } from 'react-router-dom'
 
 const ActivityForm: React.FC = () => {
-    const {setEditMode, selectedActivity, createActivity, isSubmitting, updateActivity} = useContext(ActivityStore);
+    const {activity: selectedActivity, loadActivityDetails, createActivity, isSubmitting, updateActivity, clearActivity} = useContext(ActivityStore);
+    const history = useHistory();
+    const {id = ''} = useParams();
 
     const initializeActivity = (activity: IActivity | null): IActivity => {
         if (activity !== null) {
@@ -29,6 +32,15 @@ const ActivityForm: React.FC = () => {
         updateActivityState(initializeActivity(selectedActivity));
     }, [selectedActivity]);
 
+    useEffect(() => {
+        if(id !== ''){
+            loadActivityDetails(id);
+        }
+        else {
+            clearActivity();
+        }
+    }, [id, loadActivityDetails, clearActivity])
+
     const onInputChange = (event: FormEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const { name, value } = event.currentTarget;
         updateActivityState({
@@ -38,7 +50,7 @@ const ActivityForm: React.FC = () => {
     }
 
     const saveActivity = () => {    
-        activity.id === '' ? createActivity(activity) : updateActivity(activity);
+      return activity.id === '' ? createActivity(activity): updateActivity(activity);
     }
 
     return (
@@ -50,8 +62,12 @@ const ActivityForm: React.FC = () => {
                 <Form.Input onChange={onInputChange} name='date' type='datetime-local' placeholder='Date' value={activity.date} />
                 <Form.Input onChange={onInputChange} name='city' placeholder='City' value={activity.city} />
                 <Form.Input onChange={onInputChange} name='venue' placeholder='Venue' value={activity.venue} />
-                <Button floated='right' content='Submit' type='submit' loading={isSubmitting} positive onClick={saveActivity} />
-                <Button floated='right' content='Cancel' type='button' onClick={() => setEditMode(false)} />
+                <Button floated='right' content='Submit' type='submit' loading={isSubmitting} positive onClick={() => {
+                    saveActivity().then(() => history.push(`/activities/${activity.id}`))
+                }} />
+                <Button floated='right' content='Cancel' type='button' onClick={() => {
+                    history.push('/activities');
+                }} />
             </Form>
         </Segment>
     )
