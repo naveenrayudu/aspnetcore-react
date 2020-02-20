@@ -17,7 +17,9 @@ const ActivityDashboard: React.FC = () => {
       return <LoadingComponent content="Loading Activitites...." size='large' />
 
     return (
-        <Grid>
+        <Grid style={{
+          paddingTop: '0px'
+        }}>
             <Grid.Column width='10'>
                 <ActivityList />
             </Grid.Column>

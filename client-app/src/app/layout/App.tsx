@@ -13,10 +13,8 @@ const App = () => {
   
   return (
     <React.Fragment>
+      <Route path='/' exact component={Home} />
       <Container style={{ marginTop: '6em' }}>
-
-        <Route path='/' exact component={Home} />
-
         <Route path='/(.+)' render={() => (
           <React.Fragment>
             <Navbar />

@@ -2,7 +2,7 @@ import { observable, action, computed, configure, runInAction } from "mobx";
 import { createContext } from "react";
 import { IActivity } from "../models/activity";
 import agent from "../api/agent";
-import {v4 as uuid} from "uuid";
+import { v4 as uuid } from "uuid";
 
 configure({
   enforceActions: "always"
@@ -38,10 +38,11 @@ class ActivityStore {
     await tryCatchBlock(successCallback, errorCallback);
   };
 
-  @action loadActivityDetails = async (id: string) => {
+  @action loadActivityDetails = async (id: string | null) => {
+    if (id === null) return null;
 
-    if(this.activityRegistry.has(id))
-      return this.activity = this.activityRegistry.get(id);
+    if (this.activityRegistry.has(id))
+      return (this.activity = this.activityRegistry.get(id));
 
     this.loadingInitial = true;
     const activity = await agent.Activities.details(id);
@@ -51,19 +52,19 @@ class ActivityStore {
         this.activity = activity;
         this.loadingInitial = false;
       });
-    }
+    };
 
     const errorCallback = async () => {
       runInAction(() => {
         this.loadingInitial = false;
-      })
-    }
+      });
+    };
 
     await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action createActivity = async (activity: IActivity) => {
-    activity.id = uuid()
+    activity.id = uuid();
     this.isSubmitting = true;
     const successCallback = async () => {
       await agent.Activities.create(activity);
@@ -122,7 +123,7 @@ class ActivityStore {
       });
     };
 
-   await tryCatchBlock(successCallback, errorCallback);
+    await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action selectActivity = (id: string | null) => {
@@ -135,11 +136,26 @@ class ActivityStore {
 
   @action clearActivity = () => {
     this.activity = null;
-  }
+  };
 
   @computed get activitiesByDate() {
-    return Array.from(this.activityRegistry.values()).sort(
-      (a: any, b: any) => Date.parse(a.date) - Date.parse(b.date)
+    let currentDay = "";
+
+    const dateReducer: {
+      [key: string]: IActivity[];
+    } = Array.from(this.activityRegistry.values()).reduce(
+      (prev, cur: IActivity) => {
+        currentDay = cur.date.toString().split("T")[0];
+        prev[currentDay] = prev[currentDay]
+          ? [...prev[currentDay], cur]
+          : [cur];
+        return prev;
+      },
+      {}
+    );
+
+    return Object.entries(dateReducer).sort(
+      (a, b) => Date.parse(a[0]) - Date.parse(b[0])
     );
   }
 }
