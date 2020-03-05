@@ -45,16 +45,16 @@ class ActivityStore {
       return (this.activity = this.activityRegistry.get(id));
 
     this.loadingInitial = true;
-    const activity = await agent.Activities.details(id);
 
     const successCallback = async () => {
+      const activity = await agent.Activities.details(id);
       runInAction(() => {
         this.activity = activity;
         this.loadingInitial = false;
       });
     };
 
-    const errorCallback = async () => {
+    const errorCallback = async (error: any) => {
       runInAction(() => {
         this.loadingInitial = false;
       });
@@ -116,7 +116,7 @@ class ActivityStore {
       });
     };
 
-    const errorCallback = () => {
+    const errorCallback = (error: any) => {
       runInAction(() => {
         this.isDeleting = false;
         this.deletingActivityId = "";
@@ -164,8 +164,7 @@ const tryCatchBlock = async (successCallback: any, errorCallback: any) => {
   try {
     await successCallback();
   } catch (error) {
-    console.log(error);
-    await errorCallback();
+    await errorCallback(error);
   }
 };
 

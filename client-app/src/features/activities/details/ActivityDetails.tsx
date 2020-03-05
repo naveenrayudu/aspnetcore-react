@@ -7,18 +7,22 @@ import ActivityDetailedHeader from './ActivityDetailedHeader';
 import ActivityDetailedChat from './ActivityDetailedChat';
 import ActivityDetailedInfo from './ActivityDetailedInfo';
 import ActivityDetailedSidebar from './ActivityDetailedSidebar';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 
 
 const ActivityDetails: React.FC = () => {
     const { id = null } = useParams();
-    const { activity, loadActivityDetails } = useContext(ActivityStore);
+    const { activity, loadActivityDetails, loadingInitial } = useContext(ActivityStore);
 
     useEffect(() => {
         loadActivityDetails(id)
     }, [id, loadActivityDetails])
 
-    if (activity === null)
-        return null;
+    if (loadingInitial)
+        return  <LoadingComponent content="Loading Activity...." size='large' />;
+
+    if(activity === null)
+        return <h2>No Activity Found</h2>
 
     return (
         <Grid columns={2}>
