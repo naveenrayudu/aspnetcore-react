@@ -24,7 +24,7 @@ axios.interceptors.response.use((res) => res, (error) => {
 
   if(status === 500)
     toast.error('Server error');
-  
+
 })
 
 const activitiesURL = "/activities";

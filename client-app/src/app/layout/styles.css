@@ -67,3 +67,8 @@ body {
   font-size: 1.7em;
   font-weight: normal;
 }
+
+
+.rw-popup-container.rw-calendar-popup {
+  width: 24em !important;
+}

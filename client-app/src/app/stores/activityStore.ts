@@ -3,6 +3,7 @@ import { createContext } from "react";
 import { IActivity } from "../models/activity";
 import agent from "../api/agent";
 import { v4 as uuid } from "uuid";
+import { toast } from "react-toastify";
 
 configure({
   enforceActions: "always"
@@ -22,7 +23,7 @@ class ActivityStore {
       const data: IActivity[] = await agent.Activities.list();
       runInAction(() => {
         data.forEach(activity => {
-          activity.date = (activity.date as any).split(".")[0];
+          activity.date = new Date(activity.date);
           this.activityRegistry.set(activity.id, activity);
         });
         this.loadingInitial = false;
@@ -50,8 +51,11 @@ class ActivityStore {
       const activity = await agent.Activities.details(id);
       runInAction(() => {
         this.activity = activity;
+        this.activity.date = new Date(activity.date);
         this.loadingInitial = false;
+        this.activityRegistry.set(activity.id, this.activity);
       });
+      return this.activity;
     };
 
     const errorCallback = async (error: any) => {
@@ -60,7 +64,7 @@ class ActivityStore {
       });
     };
 
-    await tryCatchBlock(successCallback, errorCallback);
+    return await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action createActivity = async (activity: IActivity) => {
@@ -79,6 +83,8 @@ class ActivityStore {
       runInAction(() => {
         this.isSubmitting = false;
       });
+      toast.error('Error occured while creating activity');
+      throw new Error();
     };
 
     await tryCatchBlock(successCallback, errorCallback);
@@ -99,9 +105,11 @@ class ActivityStore {
       runInAction(() => {
         this.isSubmitting = false;
       });
+      toast.error('Error occured while creating activity');
+      throw new Error();
     };
 
-    await tryCatchBlock(successCallback, errorCallback);
+    return await tryCatchBlock(successCallback, errorCallback);
   };
 
   @action deleteActivity = async (id: string) => {
@@ -145,7 +153,7 @@ class ActivityStore {
       [key: string]: IActivity[];
     } = Array.from(this.activityRegistry.values()).reduce(
       (prev, cur: IActivity) => {
-        currentDay = cur.date.toString().split("T")[0];
+        currentDay = cur.date.toISOString().split("T")[0] || '';
         prev[currentDay] = prev[currentDay]
           ? [...prev[currentDay], cur]
           : [cur];
@@ -162,9 +170,9 @@ class ActivityStore {
 
 const tryCatchBlock = async (successCallback: any, errorCallback: any) => {
   try {
-    await successCallback();
+   return await successCallback();
   } catch (error) {
-    await errorCallback(error);
+   return await errorCallback(error);
   }
 };
 
