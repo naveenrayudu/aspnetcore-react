@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { Segment, Form, Button, Grid } from 'semantic-ui-react'
 import { ActivityFormValues } from '../../../app/models/activity'
-import ActivityStore from '../../../app/stores/activityStore'
 import { observer } from 'mobx-react-lite'
 import { useHistory, useParams } from 'react-router-dom'
 import { Form as FinalForm, Field } from 'react-final-form'
@@ -12,6 +11,7 @@ import { category } from '../../../app/common/options/categoryOptions'
 import DateInput from '../../../app/common/form/DateInput'
 import { combineDateTime } from '../../../app/common/util/util'
 import {combineValidators, isRequired, composeValidators, hasLengthGreaterThan} from 'revalidate'
+import RootStoreContext from '../../../app/stores/rootStore'
 
 
 const validate = combineValidators({
@@ -28,7 +28,7 @@ const validate = combineValidators({
 })
 
 const ActivityForm: React.FC = () => {
-    const { loadActivityDetails, createActivity, isSubmitting, updateActivity, clearActivity } = useContext(ActivityStore);
+    const { activityStore: { loadActivityDetails, createActivity, isSubmitting, updateActivity, clearActivity }} = useContext(RootStoreContext);
     const history = useHistory();
     const { id = '' } = useParams();
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import { FieldRenderProps } from 'react-final-form'
-import { FormFieldProps, Form, Label, TextArea } from 'semantic-ui-react'
+import { FormFieldProps, Form, Label } from 'semantic-ui-react'
 
 interface IProps extends FieldRenderProps<string, HTMLElement>, FormFieldProps { }
 

@@ -1,15 +1,21 @@
-import { observable, action, computed, configure, runInAction } from "mobx";
-import { createContext } from "react";
+import { observable, action, computed, runInAction } from "mobx";
 import { IActivity } from "../models/activity";
 import agent from "../api/agent";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
+import { tryCatchBlock } from "../common/util/util";
+import { RootStore } from "./rootStore";
 
-configure({
-  enforceActions: "always"
-});
 
-class ActivityStore {
+export default class ActivityStore {
+  rootStore: RootStore;
+
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
+  }
+
+
+
   @observable activityRegistry = new Map();
   @observable loadingInitial: boolean = false;
   @observable activity: IActivity | null = null;
@@ -167,13 +173,3 @@ class ActivityStore {
     );
   }
 }
-
-const tryCatchBlock = async (successCallback: any, errorCallback: any) => {
-  try {
-   return await successCallback();
-  } catch (error) {
-   return await errorCallback(error);
-  }
-};
-
-export default createContext(new ActivityStore());
