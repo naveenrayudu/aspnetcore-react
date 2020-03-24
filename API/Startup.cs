@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using API.Middlewares;
 using Application.Activities;
 using Application.Interfaces;
+using AutoMapper;
 using Domain;
 using FluentValidation.AspNetCore;
 using Infrastructure.Security;
@@ -58,14 +59,29 @@ namespace API
 
             }).AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CommandValidator>());
             services.AddMediatR(typeof(List.Handler).Assembly);
+            services.AddAutoMapper(typeof(List.Handler));
             services.AddDbContext<DataContext>(opt =>
             {
-                opt.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
+                opt
+                    .UseLazyLoadingProxies()
+                    .UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
 
             services.AddIdentityCore<AppUser>()
                     .AddEntityFrameworkStores<DataContext>()
                     .AddSignInManager<SignInManager<AppUser>>();
+
+            services.AddAuthorization(opt => {
+                opt.AddPolicy("IsActivityHost", policy => {
+                    policy.Requirements.Add(new IsHostRequirement());
+                });
+                opt.AddPolicy("IsDummyHost", policy => {
+                    policy.Requirements.Add(new IsDummyRequirement());
+                });
+            });
+
+            services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+            services.AddTransient<IAuthorizationHandler, IsDummyRequirementHandler>();
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -80,6 +96,7 @@ namespace API
                 });
             services.AddScoped<IJWTGenerator, JWTGenerator>();
             services.AddScoped<IUserAccessor, UserAccessor>();
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

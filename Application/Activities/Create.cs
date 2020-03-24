@@ -1,9 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Interfaces;
 using Domain;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Activities
@@ -30,7 +32,7 @@ namespace Application.Activities
         public class CommandValidator : AbstractValidator<Command>
         {
             public CommandValidator()
-            { 
+            {
                 RuleFor(x => x.Title).NotEmpty();
                 RuleFor(x => x.Description).NotEmpty();
                 RuleFor(x => x.Category).NotEmpty();
@@ -44,8 +46,10 @@ namespace Application.Activities
         public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext _context;
-            public Handler(DataContext context)
+            private readonly IUserAccessor _userAccessor;
+            public Handler(DataContext context, IUserAccessor userAccessor)
             {
+                this._userAccessor = userAccessor;
                 this._context = context;
             }
 
@@ -61,10 +65,19 @@ namespace Application.Activities
                     Title = request.Title,
                     Venue = request.Venue
                 };
-
                 this._context.Activities.Add(activity);
 
-                if(await this._context.SaveChangesAsync() > 0)
+                var user = await this._context.Users.SingleOrDefaultAsync(t => t.UserName == this._userAccessor.GetCurrentUserName());
+                var userActivity = new UserActivity
+                {
+                     AppUser = user,
+                     Activity = activity,
+                     IsHost = true,
+                     DateJoined = DateTime.UtcNow
+                };
+                this._context.UserActivities.Add(userActivity);
+
+                if (await this._context.SaveChangesAsync() > 0)
                     return Unit.Value;
 
                 throw new Exception("Problem occured while saving the activity");

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Domain
+namespace Application.Activities
 {
-    public class Activity
+    public class ActivityDto
     {
         public Guid Id { get; set; }
 
@@ -19,6 +19,6 @@ namespace Domain
 
         public DateTime Date { get; set; }
 
-        public virtual ICollection<UserActivity> UserActivities {get; set;}
+        public ICollection<AttendeeDto> Attendees {get; set;}
     }
 }
