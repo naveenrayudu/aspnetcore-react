@@ -1,10 +1,11 @@
 import { observable, action, computed, runInAction } from "mobx";
-import { IActivity } from "../models/activity";
+import { IActivity, IAttendee } from "../models/activity";
 import agent from "../api/agent";
 import { v4 as uuid } from "uuid";
 import { toast } from "react-toastify";
-import { tryCatchBlock } from "../common/util/util";
+import { tryCatchBlock, setActivityProps } from "../common/util/util";
 import { RootStore } from "./rootStore";
+import { IUser } from "../models/user";
 
 
 export default class ActivityStore {
@@ -18,6 +19,7 @@ export default class ActivityStore {
 
   @observable activityRegistry = new Map();
   @observable loadingInitial: boolean = false;
+  @observable loading: boolean = false;
   @observable activity: IActivity | null = null;
   @observable isSubmitting: boolean = false;
   @observable isDeleting: boolean = false;
@@ -28,8 +30,9 @@ export default class ActivityStore {
     const successCallback = async () => {
       const data: IActivity[] = await agent.Activities.list();
       runInAction(() => {
+        const user = this.rootStore.userStore.user;
         data.forEach(activity => {
-          activity.date = new Date(activity.date);
+          setActivityProps(activity, user);
           this.activityRegistry.set(activity.id, activity);
         });
         this.loadingInitial = false;
@@ -56,9 +59,10 @@ export default class ActivityStore {
     const successCallback = async () => {
       const activity = await agent.Activities.details(id);
       runInAction(() => {
-        this.activity = activity;
-        this.activity.date = new Date(activity.date);
+        const user = this.rootStore.userStore.user;
+        setActivityProps(activity, user);
         this.loadingInitial = false;
+        this.activity = activity;
         this.activityRegistry.set(activity.id, this.activity);
       });
       return this.activity;
@@ -78,6 +82,13 @@ export default class ActivityStore {
     this.isSubmitting = true;
     const successCallback = async () => {
       await agent.Activities.create(activity);
+      
+      const attendee = this.createAttendee();
+      attendee.isHost = true;
+      activity.isHost = true;
+
+      activity.attendees = [attendee];
+
       runInAction(() => {
         this.activityRegistry.set(activity.id, activity);
         this.isSubmitting = false;
@@ -152,6 +163,60 @@ export default class ActivityStore {
     this.activity = null;
   };
 
+  @action attendActivity =  async () => {
+   
+    this.loading = true;
+    const attendee = this.createAttendee();
+    const successCallback = async () => {
+      await agent.Activities.attend(this.activity?.id!);
+
+      runInAction(() => {
+        this.loading = false;
+        if(this.activity) {
+          this.activity.attendees.push(attendee);
+          this.activity.isGoing = true;
+          this.activityRegistry.set(this.activity.id, this.activity);
+        }
+      })
+    }
+
+    const errorCallback = () => {
+      runInAction(() => {
+        this.loading = false;
+      })
+      toast.error('Problem signing up to the activity');
+    }
+
+    return await tryCatchBlock(successCallback, errorCallback);
+  }
+
+  @action cancelAttendee = async () => {
+    if(!this.activity) {
+      return;
+    }
+
+    this.loading = true;
+    const successCallback = async () => {
+      await agent.Activities.unattend(this.activity!.id);
+
+      runInAction(() => {
+        this.loading = false;
+        this.activity!.attendees = this.activity!.attendees.filter(t => t.username !== this.rootStore.userStore.user?.userName);
+        this.activity!.isGoing = false;
+        this.activityRegistry.set(this.activity!.id, this.activity);
+      })
+    }
+
+    const errorCallback =  () => {
+      runInAction(() => {
+        this.loading = false;
+        toast.error('Problem cancelling attendance');
+      })
+    }
+
+    return await tryCatchBlock(successCallback, errorCallback);
+  }
+
   @computed get activitiesByDate() {
     let currentDay = "";
 
@@ -171,5 +236,19 @@ export default class ActivityStore {
     return Object.entries(dateReducer).sort(
       (a, b) => Date.parse(a[0]) - Date.parse(b[0])
     );
+  }
+
+
+  createAttendee = (): IAttendee => {
+    const user: IUser = this.rootStore.userStore.user!;
+
+    const attendee: IAttendee = {
+      displayName: user.displayName,
+      image: user.image || '',
+      isHost: false,
+      username: user.userName
+    }
+
+    return attendee;
   }
 }

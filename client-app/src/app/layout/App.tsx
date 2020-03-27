@@ -11,11 +11,12 @@ import ActivityDetails from "../../features/activities/details/ActivityDetails";
 import NotFound from './NotFound';
 import ModalContainer from "../common/modals/ModalContainer";
 import RootStoreContext from "../stores/rootStore";
+import LoadingComponent from "./LoadingComponent";
 
 
 const App = () => {
 
-  const { userStore: { user, getUser }, commonStore: {token, setAppLoaded} } = useContext(RootStoreContext);
+  const { userStore: { user, getUser }, commonStore: {token, setAppLoaded, appLoaded} } = useContext(RootStoreContext);
    useEffect(() => {
         if(token && !user) {
             getUser().finally(() => {
@@ -26,6 +27,9 @@ const App = () => {
             setAppLoaded();
         }}, [token, setAppLoaded, getUser, user]
       )
+
+  if(!appLoaded)
+        return <LoadingComponent content='Loading activities....' />
 
   return (
     <React.Fragment>
