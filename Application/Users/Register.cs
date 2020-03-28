@@ -76,7 +76,8 @@ namespace Application.Users
                     {
                         DisplayName = appUser.DisplayName,
                         Token = this.JWTGenerator.CreateToken(appUser),
-                        UserName = appUser.UserName
+                        UserName = appUser.UserName,
+                        Image = null
                     };
                 }
 

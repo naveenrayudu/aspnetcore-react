@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +53,8 @@ namespace Application.Users
                    {
                        DisplayName = user.DisplayName,
                        UserName = user.UserName,
-                       Token = JWTGenerator.CreateToken(user)
+                       Token = JWTGenerator.CreateToken(user),
+                       Image = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
                    };
                }
 
