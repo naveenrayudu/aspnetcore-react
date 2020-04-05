@@ -3,6 +3,7 @@ import { IActivity } from "../models/activity";
 import { history } from "../..";
 import { toast } from "react-toastify";
 import { IUser, IUserFormValues } from "../models/user";
+import { IProfile, IPhoto } from "../models/profile";
 
 if (process.env.NODE_ENV === "development") {
   axios.defaults.baseURL = "http://localhost:5000/api";
@@ -41,7 +42,10 @@ axios.interceptors.response.use((res) => res, (error) => {
 })
 
 const activitiesURL = "/activities";
-const userURL = "/user"
+const userURL = "/user";
+const profileUrl = "/profiles";
+const photosUrl = "/photos";
+
 const responseBody = (response: AxiosResponse) => response.data;
 const sleep = (ms: number) => (response: AxiosResponse) => {
   return new Promise<AxiosResponse>((resolve) => {
@@ -55,7 +59,17 @@ const Requests = {
   get: (url: string) => axios.get(url).then(sleep(1000)).then(responseBody),
   post: (url: string, body: {}) => axios.post(url, body).then(sleep(1000)).then(responseBody),
   put: (url: string, body: {}) => axios.put(url, body).then(sleep(1000)).then(responseBody),
-  delete: (url: string) => axios.delete(url).then(sleep(1000)).then(responseBody)
+  delete: (url: string) => axios.delete(url).then(sleep(1000)).then(responseBody),
+  postForm: (url: string, file: Blob) => {
+    const formData = new FormData();
+    formData.append('File', file);
+
+    return axios.post(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    }).then(responseBody)
+  }
 };
 
 const Activities = {
@@ -76,7 +90,15 @@ const User  = {
   register: (user: IUserFormValues): Promise<IUser> => Requests.post(`${userURL}/register`, user)
 }
 
+const Profiles = {
+  get:(userName: string):Promise<IProfile> => Requests.get(`${profileUrl}/${userName}`),
+  uploadPhoto: (file: Blob): Promise<IPhoto> => Requests.postForm(photosUrl, file),
+  setMain: (id: string): Promise<void> => Requests.post(`${photosUrl}/${id}/setmain`, {}),
+  deletePhoto: (id: string): Promise<void> => Requests.delete(`${photosUrl}/${id}`)
+}
+
 export default {
   Activities,
-  User
+  User,
+  Profiles
 };

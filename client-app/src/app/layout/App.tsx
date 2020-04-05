@@ -12,6 +12,7 @@ import NotFound from './NotFound';
 import ModalContainer from "../common/modals/ModalContainer";
 import RootStoreContext from "../stores/rootStore";
 import LoadingComponent from "./LoadingComponent";
+import ProfilePage from "../../features/profiles/ProfilePage";
 
 
 const App = () => {
@@ -29,7 +30,7 @@ const App = () => {
       )
 
   if(!appLoaded)
-        return <LoadingComponent content='Loading activities....' />
+        return <LoadingComponent content='Loading user info....' />
 
   return (
     <React.Fragment>
@@ -43,6 +44,7 @@ const App = () => {
               <Route path='/activities/:id' exact component={ActivityDetails} />
               <Route path='/activities/edit/:id' component={ActivityForm} />
               <Route path='/createActivity' component={ActivityForm} />
+              <Route path='/profile/:username' component={ProfilePage}/>
               <Route component={NotFound} />
             </Switch>
 

@@ -71,7 +71,18 @@ namespace API
             services.AddIdentityCore<AppUser>()
                     .AddEntityFrameworkStores<DataContext>()
                     .AddSignInManager<SignInManager<AppUser>>();
-
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
+           
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(opt => {
+                    opt.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = key,
+                        ValidateAudience = false,
+                        ValidateIssuer = false
+                    };
+                });
             services.AddAuthorization(opt => {
                 opt.AddPolicy("IsActivityHost", policy => {
                     policy.Requirements.Add(new IsHostRequirement());
@@ -84,17 +95,7 @@ namespace API
             services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
             services.AddTransient<IAuthorizationHandler, IsDummyRequirementHandler>();
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(opt => {
-                    opt.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = key,
-                        ValidateAudience = false,
-                        ValidateIssuer = false
-                    };
-                });
+          
             services.AddScoped<IJWTGenerator, JWTGenerator>();
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();

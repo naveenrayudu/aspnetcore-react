@@ -31,13 +31,6 @@ namespace Application.Photos
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                var result = await this._photoAccessor.DeletePhoto(request.PublicId);
-                if(string.IsNullOrWhiteSpace(result)) {
-                    throw new RestException(HttpStatusCode.InternalServerError, new {
-                        Photos = "Not able to delete the photo"
-                    });
-                }
-
                 var users = await this._context.Users.SingleOrDefaultAsync(t => t.UserName == this._userAccessor.GetCurrentUserName());
                 var photo = users.Photos.FirstOrDefault(t => t.Id == request.PublicId);
 
@@ -50,6 +43,13 @@ namespace Application.Photos
                     throw new RestException(HttpStatusCode.BadRequest, new {
                         Photos = "Main photo cannot be deleted"
                     });
+
+                var result = await this._photoAccessor.DeletePhoto(request.PublicId);
+                if(string.IsNullOrWhiteSpace(result)) {
+                    throw new RestException(HttpStatusCode.InternalServerError, new {
+                        Photos = "Not able to delete the photo"
+                    });
+                }
 
                 users.Photos.Remove(photo);
 
