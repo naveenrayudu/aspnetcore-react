@@ -1,5 +1,5 @@
 import { observable, action, runInAction, computed } from "mobx";
-import { IProfile } from "../models/profile";
+import { IProfile, IProfileFormValues } from "../models/profile";
 import { RootStore } from "./rootStore";
 import agent from "../api/agent";
 import { tryCatchBlock } from "../common/util/util";
@@ -116,6 +116,31 @@ export default class ProfileStore {
             })
         }
          
+        return tryCatchBlock(successCallback, errorCallback);
+    }
+
+    @action updateProfile = async(profile: IProfileFormValues) => {
+        const successCallback = async () => {
+            await agent.Profiles.put(profile);
+            runInAction(() => {
+                if(this.userProfile) {
+                    this.userProfile.displayName = profile.displayName;
+                    this.userProfile.bio = profile.bio;
+                }
+
+                if(this.rootStore.userStore.user) {
+                    this.rootStore.userStore.user.displayName = profile.displayName;
+                }
+
+            })
+        }
+
+        const errorCallback = async () => {
+            runInAction(() => {
+                toast.error('Error occured while updating the profile')
+            })
+        }
+
         return tryCatchBlock(successCallback, errorCallback);
     }
 

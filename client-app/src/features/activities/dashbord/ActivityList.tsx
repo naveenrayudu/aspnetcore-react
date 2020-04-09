@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Item, Label } from 'semantic-ui-react'
+import { Item, Label, Grid } from 'semantic-ui-react'
 import { observer } from 'mobx-react-lite';
 import ActivityListItem from './ActivityListItem'
 import { IActivity } from '../../../app/models/activity';
@@ -10,9 +10,13 @@ const ActivityList: React.FC = () => {
     const { activityStore: { activitiesByDate } } = useContext(RootStoreContext);
     return (
         <React.Fragment>
-            {activitiesByDate.map(([date, activities]) => {
+            {activitiesByDate.map(([date, activities], index) => {
                 return (
-                    <React.Fragment key={date}>
+                    <Grid.Column key={date} style={{
+                        marginTop: index > 1 ? '20px' : '0',
+                        paddingTop: index > 1 ? '20px' : '0',
+                        borderTop: index > 1 ? '1px solid black' : ''
+                    }}>
                         <Label key={date} size='large' color='blue'>
                             {format(date, 'eeee do MMMM')}
                         </Label>
@@ -22,7 +26,7 @@ const ActivityList: React.FC = () => {
                                 activities.map((activity: IActivity) => <ActivityListItem key={activity.id} activity={activity} />)
                             }
                         </Item.Group>
-                    </React.Fragment>
+                    </Grid.Column>
                 )
             })
             }

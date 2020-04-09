@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { tryCatchBlock, setActivityProps } from "../common/util/util";
 import { RootStore } from "./rootStore";
 import { IUser } from "../models/user";
+import { HubConnection, HubConnectionBuilder, LogLevel, HubConnectionState } from "@microsoft/signalr";
 
 
 export default class ActivityStore {
@@ -24,6 +25,56 @@ export default class ActivityStore {
   @observable isSubmitting: boolean = false;
   @observable isDeleting: boolean = false;
   @observable deletingActivityId: string = "";
+
+  @observable.ref hubConnection: HubConnection | null = null;
+
+  @action createHubConnection = (activityId: string) => {
+      this.hubConnection = new HubConnectionBuilder()
+          .withUrl('http://localhost:5000/chat', {
+              accessTokenFactory: () => this.rootStore.commonStore.token!
+          })
+          .configureLogging(LogLevel.Information)
+          .build();
+
+      this.hubConnection.start()
+          .then(() => console.log(this.hubConnection!.state))
+          .then(() => {
+            return this.hubConnection?.invoke('AddToGroup', activityId)
+          })
+          .catch((e) => console.log('Error establishing connection', e))
+
+      this.hubConnection.on('ReceiveComment', (comment: any) => {
+        runInAction(() => {
+          this.activity?.comments.push(comment.result);
+        })
+      })
+  }
+
+  @action stopHubConnection = () => {
+    if(!this.hubConnection || this.hubConnection.state !== HubConnectionState.Connected)
+      return;
+
+    this.hubConnection?.invoke('RemoveFromGroup', this.activity?.id)
+    .then(() => {
+      if(this.hubConnection && this.hubConnection.state === HubConnectionState.Connected)
+        this.hubConnection?.stop();
+    })
+  }
+
+  @action addComment = async (values: any) => {
+    values.ActivityId = this.activity?.id;
+    const successCallback = async () => {
+      debugger;
+      await this.hubConnection?.send("SendComment", values);
+    }
+
+    const errorCallback = async (e: any) => {
+      console.log(e)
+      toast.error('Error while sending comments');
+    }
+
+    return tryCatchBlock(successCallback, errorCallback);
+  }
 
   @action loadActivities = async () => {
     this.loadingInitial = true;
@@ -88,6 +139,7 @@ export default class ActivityStore {
       activity.isHost = true;
 
       activity.attendees = [attendee];
+      activity.comments = [];
 
       runInAction(() => {
         this.activityRegistry.set(activity.id, activity);

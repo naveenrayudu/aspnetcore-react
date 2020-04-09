@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using API.Middlewares;
+using API.SignalR;
 using Application.Activities;
 using Application.Interfaces;
 using AutoMapper;
@@ -50,17 +51,20 @@ namespace API
                     bulder.WithOrigins("http://localhost:3000")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .AllowAnyOrigin();
+                    .WithOrigins("http://localhost:3000")
+                    .AllowCredentials();
                 });
             });
 
-            services.AddControllers(opt => {
+            services.AddControllers(opt =>
+            {
                 var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
                 opt.Filters.Add(new AuthorizeFilter(policy));
 
             }).AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CommandValidator>());
             services.AddMediatR(typeof(List.Handler).Assembly);
             services.AddAutoMapper(typeof(List.Handler));
+           
             services.AddDbContext<DataContext>(opt =>
             {
                 opt
@@ -68,13 +72,16 @@ namespace API
                     .UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
 
+            services.AddSignalR();
+
             services.AddIdentityCore<AppUser>()
                     .AddEntityFrameworkStores<DataContext>()
                     .AddSignInManager<SignInManager<AppUser>>();
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["TokenKey"]));
-           
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(opt => {
+                .AddJwtBearer(opt =>
+                {
                     opt.TokenValidationParameters = new TokenValidationParameters()
                     {
                         ValidateIssuerSigningKey = true,
@@ -82,12 +89,32 @@ namespace API
                         ValidateAudience = false,
                         ValidateIssuer = false
                     };
+
+                    opt.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            // If the request is for our hub...
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                (path.StartsWithSegments("/chat")))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
-            services.AddAuthorization(opt => {
-                opt.AddPolicy("IsActivityHost", policy => {
+            services.AddAuthorization(opt =>
+            {
+                opt.AddPolicy("IsActivityHost", policy =>
+                {
                     policy.Requirements.Add(new IsHostRequirement());
                 });
-                opt.AddPolicy("IsDummyHost", policy => {
+                opt.AddPolicy("IsDummyHost", policy =>
+                {
                     policy.Requirements.Add(new IsDummyRequirement());
                 });
             });
@@ -95,7 +122,7 @@ namespace API
             services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
             services.AddTransient<IAuthorizationHandler, IsDummyRequirementHandler>();
 
-          
+
             services.AddScoped<IJWTGenerator, JWTGenerator>();
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();
@@ -128,6 +155,7 @@ namespace API
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chat");
             });
         }
     }

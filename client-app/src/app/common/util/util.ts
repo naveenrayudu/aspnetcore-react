@@ -26,3 +26,8 @@ export const setActivityProps = (activity: IActivity, user: IUser | null) => {
   activity.isGoing = activity.attendees.some(t => t.username === user?.userName);
   activity.isHost = activity.attendees.some(t => t.username === user?.userName && t.isHost);
 }
+
+export const GetUTCDateTime = () => {
+  const now = new Date();
+  return new Date(now.getTime() + (now.getTimezoneOffset() * 60000));
+}

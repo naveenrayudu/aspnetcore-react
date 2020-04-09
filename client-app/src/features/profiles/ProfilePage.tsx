@@ -11,7 +11,7 @@ const ProfilePage = () => {
     const {profileStore: {loadingProfile, getUserProfile, 
                                     userProfile, isCurrentUser, uplaodPhoto, 
                                     uploadingPhoto, setMain, settingMainPhoto,
-                                    deletePhoto, deleteingPhoto}} = useContext(RootStoreContext)
+                                    deletePhoto, deleteingPhoto, updateProfile}} = useContext(RootStoreContext)
     const {username} = useParams();
 
     useEffect(() => {
@@ -28,7 +28,8 @@ const ProfilePage = () => {
             </Grid.Column>
             <Grid.Column width={16}>
                 <ProfileContent profile={userProfile} isCurrentUser={isCurrentUser} uploadPhoto={uplaodPhoto} isUploading={uploadingPhoto} 
-                        setMain={setMain} isSettingMain={settingMainPhoto} deletePhoto={deletePhoto} isDeletingPhoto={deleteingPhoto} />
+                        setMain={setMain} isSettingMain={settingMainPhoto} deletePhoto={deletePhoto} isDeletingPhoto={deleteingPhoto}
+                        updateProfile= {updateProfile} />
             </Grid.Column>
         </Grid>
     )

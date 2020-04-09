@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Activities;
+using Application.Comments;
 using Domain;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +27,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Unit>> Create(Create.Command command)
+        public async Task<ActionResult<Unit>> Create(Application.Activities.Create.Command command)
         {
             return await this.Mediator.Send(command);
         }
@@ -56,6 +57,12 @@ namespace API.Controllers
         public async Task<ActionResult<Unit>> UnAttend(Guid id) 
         {
             return await this.Mediator.Send(new Unattend.Command(){ Id = id });
+        }
+
+        [HttpPost("postcomment")]
+        public async Task<ActionResult<CommentDto>> PostComment(Application.Comments.Create.Command command)
+        {
+            return await this.Mediator.Send(command);
         }
     }
 }

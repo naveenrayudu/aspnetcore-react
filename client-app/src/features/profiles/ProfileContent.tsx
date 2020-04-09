@@ -1,7 +1,8 @@
 import React from 'react'
 import {Tab} from 'semantic-ui-react'
 import ProfilePhoto from './ProfilePhoto'
-import { IProfile } from '../../app/models/profile'
+import { IProfile, IProfileFormValues } from '../../app/models/profile'
+import ProfileAbout from './ProfileAbout'
 
 const style ={
     fontSize: '12px'
@@ -15,10 +16,11 @@ const ProfileContent: React.FC<{
     setMain: (id: string) => void,
     isSettingMain: boolean,
     deletePhoto: (id: string) => void,
-    isDeletingPhoto: boolean
-}> = ({profile, isCurrentUser, uploadPhoto, isUploading, setMain, isSettingMain, deletePhoto, isDeletingPhoto}) => {
+    isDeletingPhoto: boolean,
+    updateProfile: (values: IProfileFormValues) => Promise<any>
+}> = ({profile, isCurrentUser, uploadPhoto, isUploading, setMain, isSettingMain, deletePhoto, isDeletingPhoto, updateProfile}) => {
     const panes = [
-        { menuItem: 'About', render: () => <Tab.Pane style={style}>About Content</Tab.Pane> },
+        { menuItem: 'About', render: () => <ProfileAbout isCurrentUser={isCurrentUser} profile={profile} updateProfile={updateProfile} /> },
         { menuItem: 'Photos', render: () => <ProfilePhoto photos={profile.photos} isCurrentUser={isCurrentUser}
                                                          uploadPhoto={uploadPhoto} isUploading={isUploading} setMain={setMain} isSettingMain={isSettingMain}
                                                           deletePhoto={deletePhoto} isDeletingPhoto={isDeletingPhoto} /> },
@@ -28,7 +30,7 @@ const ProfileContent: React.FC<{
       ]
 
     return (
-        <Tab className='profileClass' defaultActiveIndex={1} menu={{ fluid: true, vertical: true }} menuPosition='right' panes={panes} />
+        <Tab className='profileClass' defaultActiveIndex={0} menu={{ fluid: true, vertical: true }} menuPosition='right' panes={panes} />
     )
 }
 

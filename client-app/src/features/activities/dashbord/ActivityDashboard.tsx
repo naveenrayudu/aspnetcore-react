@@ -20,9 +20,9 @@ const ActivityDashboard: React.FC = () => {
         <Grid style={{
           paddingTop: '0px'
         }}>
-            <Grid.Column width='10'>
+            <Grid.Row columns={2}>
                 <ActivityList />
-            </Grid.Column>
+            </Grid.Row>
         </Grid>
     )
 }
