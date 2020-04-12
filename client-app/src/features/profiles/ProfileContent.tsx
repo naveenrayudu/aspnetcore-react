@@ -3,6 +3,7 @@ import {Tab} from 'semantic-ui-react'
 import ProfilePhoto from './ProfilePhoto'
 import { IProfile, IProfileFormValues } from '../../app/models/profile'
 import ProfileAbout from './ProfileAbout'
+import ProfileFollowings from './ProfileFollowings'
 
 const style ={
     fontSize: '12px'
@@ -25,8 +26,8 @@ const ProfileContent: React.FC<{
                                                          uploadPhoto={uploadPhoto} isUploading={isUploading} setMain={setMain} isSettingMain={isSettingMain}
                                                           deletePhoto={deletePhoto} isDeletingPhoto={isDeletingPhoto} /> },
         { menuItem: 'Activities', render: () => <Tab.Pane style={style}>Activities Content</Tab.Pane> },
-        { menuItem: 'Followers', render: () => <Tab.Pane style={style}>Followers Content</Tab.Pane> },
-        { menuItem: 'Following', render: () => <Tab.Pane style={style}>Following Content</Tab.Pane> }
+        { menuItem: 'Followers', render: () => <ProfileFollowings predicate='followers' /> },
+        { menuItem: 'Following', render: () => <ProfileFollowings predicate='following' /> }
       ]
 
     return (

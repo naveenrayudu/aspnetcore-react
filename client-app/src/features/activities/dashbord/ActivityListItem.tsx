@@ -14,7 +14,7 @@ const ActivityListItem: React.FC<{
             <Segment>
                 <Item.Group>
                     <Item key={activity.id}>
-                        <Item.Image size='tiny' circular src={host?.image || '/assets/user.png'} />
+                        <Item.Image size='tiny' circular src={host?.image || '/assets/user.png'}  />
                         <Item.Content>
                             <Item.Header as={Link} to={`/activities/${activity.id}`}>{activity.title}</Item.Header>
 

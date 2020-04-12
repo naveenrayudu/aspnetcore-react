@@ -16,6 +16,9 @@ export default class ProfileStore {
     @observable uploadingPhoto: boolean = false;
     @observable settingMainPhoto: boolean = false;
     @observable deleteingPhoto: boolean = false;
+    @observable followingUnFollowingUser: boolean = false;
+    @observable followings: IProfile[] = [];
+    @observable loadingFollowings: boolean = false;
 
     @action getUserProfile = async (userName: string) => {
         this.loadingProfile = true;
@@ -143,6 +146,79 @@ export default class ProfileStore {
 
         return tryCatchBlock(successCallback, errorCallback);
     }
+
+
+    @action follow = async (username: string) => {
+        this.followingUnFollowingUser = true;
+
+        const successCallback = async () => {
+            await agent.Profiles.follow(username);
+            runInAction(() => {
+                this.followingUnFollowingUser = false;
+
+                if(this.userProfile) {
+                    this.userProfile.isFollowing = true;
+                    this.userProfile.followersCount = this.userProfile.followersCount + 1;
+                }
+            })
+        }
+
+        const errorCallback = async () => {
+            runInAction(() => {
+                this.followingUnFollowingUser = false;
+            })
+            toast.error('Error following user')
+        }
+
+        return tryCatchBlock(successCallback, errorCallback);
+    }
+
+    @action unfollow = async (username: string) => {
+        this.followingUnFollowingUser = true;
+
+        const successCallback = async () => {
+            await agent.Profiles.unfollow(username);
+            runInAction(() => {
+                this.followingUnFollowingUser = false;
+
+                if(this.userProfile) {
+                    this.userProfile.isFollowing = false;
+                    this.userProfile.followersCount = this.userProfile.followersCount - 1;
+                }
+            })
+        }
+
+        const errorCallback = async () => {
+            runInAction(() => {
+                this.followingUnFollowingUser = false;
+            })
+            toast.error('Error unfollowing user')
+        }
+
+        return tryCatchBlock(successCallback, errorCallback);
+    }
+
+    @action loadFollowings = async (username: string, predicate: string) => {
+        this.followings = [];
+        this.loadingFollowings = true;
+        const successCallback = async () => {
+            var profiles = await agent.Profiles.listFollowings(username, predicate);
+            runInAction(() => {
+                this.followings = profiles;
+                this.loadingFollowings = false;
+            })
+        }
+
+        const errorCallback = async () => {
+            runInAction(() => {
+                this.loadingFollowings = false;
+                toast.error(`Error loading ${predicate === 'followers' ? 'followers' : 'following'}`)
+            })
+        }
+
+        return tryCatchBlock(successCallback, errorCallback);
+    }
+    
 
     @computed get isCurrentUser() {
         if(this.rootStore.userStore.user && this.userProfile) {
